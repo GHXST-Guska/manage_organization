@@ -31,25 +31,24 @@ class _ListPersonState extends State<ListPerson> {
   Future<void> _confirmDelete(String id) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Konfirmasi Hapus'),
-            content: const Text('Apakah Anda yakin ingin menghapus data ini?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Batal'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Hapus'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: const Text('Apakah Anda yakin ingin menghapus data ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
           ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
     );
 
     if (confirmed == true) {
@@ -81,7 +80,9 @@ class _ListPersonState extends State<ListPerson> {
   void _navigateToForm(BuildContext context, {Person? person}) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => PersonFormPage(person: person)),
+      MaterialPageRoute(
+        builder: (context) => PersonFormPage(person: person),
+      ),
     );
 
     if (result == true) {
@@ -91,22 +92,19 @@ class _ListPersonState extends State<ListPerson> {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daftar Aduan'),
-        backgroundColor: isDark ? Colors.black : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black,
+        title: const Text('Manajemen Aduan'),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshData),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshData,
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToForm(context),
-        backgroundColor: isDark ? Colors.white : Colors.black,
-        child: Icon(Icons.add, color: isDark ? Colors.black : Colors.white),
+        child: const Icon(Icons.add),
       ),
       body: Column(
         children: [
@@ -117,7 +115,7 @@ class _ListPersonState extends State<ListPerson> {
                 labelText: 'Cari...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               onChanged: (value) {
@@ -128,169 +126,155 @@ class _ListPersonState extends State<ListPerson> {
             ),
           ),
           Expanded(
-            child:
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : FutureBuilder<List<Person>>(
-                      future: _futurePersons,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text('Gagal memuat data: ${snapshot.error}'),
-                          );
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const Center(child: Text('Tidak ada data'));
-                        }
-
-                        final persons =
-                            snapshot.data!
-                                .where(
-                                  (p) =>
-                                      p.titleIssues.toLowerCase().contains(
-                                        _searchQuery,
-                                      ) ||
-                                      p.descriptionIssues
-                                          .toLowerCase()
-                                          .contains(_searchQuery) ||
-                                      p.nim.toLowerCase().contains(
-                                        _searchQuery,
-                                      ),
-                                )
-                                .toList();
-
-                        return ListView.builder(
-                          itemCount: persons.length,
-                          itemBuilder: (context, index) {
-                            final person = persons[index];
-                            return InkWell(
-                              onTap:
-                                  () =>
-                                      _navigateToForm(context, person: person),
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color:
-                                      isDark
-                                          ? Colors.grey[900]
-                                          : Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          isDark
-                                              ? Colors.black26
-                                              : Colors.grey.shade300,
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 28,
-                                      backgroundImage:
-                                          person.imageUrl.isNotEmpty
-                                              ? NetworkImage(person.imageUrl)
-                                              : null,
-                                      backgroundColor: Colors.grey.shade300,
-                                      child:
-                                          person.imageUrl.isEmpty
-                                              ? const Icon(
-                                                Icons.person,
-                                                size: 30,
-                                              )
-                                              : null,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            person.titleIssues,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color:
-                                                  isDark
-                                                      ? Colors.white
-                                                      : Colors.black,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            person.descriptionIssues,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color:
-                                                  isDark
-                                                      ? Colors.grey[300]
-                                                      : Colors.grey[700],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              const Text(
-                                                "⭐",
-                                                style: TextStyle(fontSize: 14),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text('${person.rating}'),
-                                              const SizedBox(width: 10),
-                                              Text(
-                                                person.divisionDepartmentName,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Text(
-                                            'NIM: ${person.nim}',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color:
-                                                  isDark
-                                                      ? Colors.grey[400]
-                                                      : Colors.grey[600],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete_outline,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed:
-                                          () => _confirmDelete(
-                                            person.idCustomerService,
-                                          ),
-                                    ),
-                                  ],
-                                ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : FutureBuilder<List<Person>>(
+                    future: _futurePersons,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Gagal memuat data',
+                                style: TextStyle(fontSize: 16),
                               ),
-                            );
-                          },
+                              const SizedBox(height: 8),
+                              Text(
+                                snapshot.error.toString(),
+                                style: const TextStyle(color: Colors.red),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _refreshData,
+                                child: const Text('Coba Lagi'),
+                              ),
+                            ],
+                          ),
                         );
-                      },
-                    ),
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Tidak ada data',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        );
+                      }
+
+                      final persons = snapshot.data!
+                          .where((person) =>
+                              person.titleIssues.toLowerCase().contains(_searchQuery) ||
+                              person.descriptionIssues.toLowerCase().contains(_searchQuery) ||
+                              person.nim.toLowerCase().contains(_searchQuery))
+                          .toList();
+
+                      if (persons.isEmpty) {
+                        return const Center(
+                          child: Text('Tidak ditemukan data yang sesuai'),
+                        );
+                      }
+
+                      return ListView.builder(
+                        itemCount: persons.length,
+                        itemBuilder: (context, index) {
+                          final person = persons[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            elevation: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  person.imageUrl.isNotEmpty
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(6),
+                                          child: Image.network(
+                                            person.imageUrl,
+                                            width: 60,
+                                            height: 60,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) =>
+                                                const Icon(Icons.broken_image, size: 60),
+                                          ),
+                                        )
+                                      : Container(
+                                          width: 60,
+                                          height: 60,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: const Icon(Icons.image, size: 40),
+                                        ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          person.titleIssues,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          person.descriptionIssues,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.star, color: Colors.amber, size: 16),
+                                            const SizedBox(width: 4),
+                                            Text('${person.rating}'),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                person.divisionDepartmentName,
+                                                style: const TextStyle(color: Colors.blue),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'NIM: ${person.nim}',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.blue),
+                                        onPressed: () =>
+                                            _navigateToForm(context, person: person),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () =>
+                                            _confirmDelete(person.idCustomerService),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),
